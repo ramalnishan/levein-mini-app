@@ -28,6 +28,8 @@ public class PaymentService {
 
     public void createPayment(PaymentDetails paymentDetails) {
         Nodb.createPayment(paymentDetails);
+
+        aSyncConfig.executorService().submit(publishPaymentNotification(paymentDetails));
     }
 
     public PaymentSummeryResponseDto getPaymentSummery(PaymentSummeryDto paymentSummeryDto) {
@@ -45,5 +47,9 @@ public class PaymentService {
         paymentSummeryResponseDto.setTotalAmount(totalAmount);
 
         return paymentSummeryResponseDto;
+    }
+
+    private Runnable publishPaymentNotification(PaymentDetails payment) {
+        return () -> System.out.println("publish to Kafka, payment details: " + payment);
     }
 }
