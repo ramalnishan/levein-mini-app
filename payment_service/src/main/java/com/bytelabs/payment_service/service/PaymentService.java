@@ -32,26 +32,18 @@ public class PaymentService {
 
     public PaymentSummeryResponseDto getPaymentSummery(PaymentSummeryDto paymentSummeryDto) {
         List<PaymentDetails> paymentDetails = Nodb.getPaymentList();
-        double amount = 0;
 
-        for (PaymentDetails paymentDetail : paymentDetails) {
-            if (paymentDetail.getPaymentType() == paymentSummeryDto.getPaymentType()
-                    && paymentDetail.getUserId().equals(paymentSummeryDto.getUserId())) {
-                amount += paymentDetail.getAmount();
-            }
-        }
+        double totalAmount = paymentDetails.stream()
+                .filter(n -> n.getUserId().equals(paymentSummeryDto.getUserId()))
+                .filter(n -> n.getPaymentType() == paymentSummeryDto.getPaymentType())
+                .mapToDouble(PaymentDetails::getAmount)
+                .sum();
 
         PaymentSummeryResponseDto paymentSummeryResponseDto = new PaymentSummeryResponseDto();
         paymentSummeryResponseDto.setPaymentType(paymentSummeryDto.getPaymentType());
         paymentSummeryResponseDto.setUserId(paymentSummeryDto.getUserId());
-        paymentSummeryResponseDto.setTotalAmount(amount);
-
-        aSyncConfig.executorService().submit(this::task);
+        paymentSummeryResponseDto.setTotalAmount(totalAmount);
 
         return paymentSummeryResponseDto;
-    }
-
-    private void task() {
-        System.out.println("Starting task");
     }
 }
